@@ -2,111 +2,239 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Al Furqan International Quran Academy</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f1f5f2;
-      margin: 0;
-      padding: 30px 15px;
-      text-align: center;
-    }
-    .card {
-      background: white;
-      max-width: 420px;
-      margin: 40px auto;
-      padding: 28px;
-      border-radius: 16px;
-      box-shadow: 0 4px 18px #0001;
-    }
-    h1 { color: #176b50; font-size: 25px; }
-    input, button {
-      box-sizing: border-box;
-      width: 100%;
-      padding: 13px;
-      margin: 9px 0;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    input { border: 1px solid #ccc; }
-    button {
-      background: #176b50;
-      color: white;
-      border: 0;
-      cursor: pointer;
-    }
-    .note { color: #666; font-size: 14px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Al Furqan International Quran Academy</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#f1f5f2;padding:20px}
+.card{background:white;max-width:600px;margin:25px auto;padding:25px;border-radius:15px}
+h1,h2{color:#176b50}
+input,button{box-sizing:border-box;width:100%;padding:12px;margin:8px 0;font-size:16px}
+button{background:#176b50;color:white;border:0;border-radius:8px;cursor:pointer}
+input{border:1px solid #ccc;border-radius:8px}
+.hidden{display:none}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+td,th{border:1px solid #ddd;padding:8px;text-align:left}
+.note{color:#666;font-size:14px}
+</style>
 </head>
 <body>
-  <div class="card">
-    <h1>Al Furqan International Quran Academy</h1>
-    <h2>Attendance Portal</h2>
-    <p>حاضری پورٹل</p>
-    <form onsubmit="event.preventDefault(); alert('Login system will be connected in the next step.');">
-      <input type="text" placeholder="Student Roll Number" required>
-      <input type="password" placeholder="Password" required>
-      <button type="submit">Login / لاگ اِن</button>
-    </form>
-    <p class="note">Student Attendance Management System</p>
-  </div>
-</body>
-</html>
+<div class="card">
+<h1>Al Furqan International Quran Academy</h1>
+<h2>Attendance Portal | حاضری پورٹل</h2>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Al Furqan International Quran Academy</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f1f5f2;
-      margin: 0;
-      padding: 30px 15px;
-      text-align: center;
-    }
-    .card {
-      background: white;
-      max-width: 420px;
-      margin: 40px auto;
-      padding: 28px;
-      border-radius: 16px;
-      box-shadow: 0 4px 18px #0001;
-    }
-    h1 { color: #176b50; font-size: 25px; }
-    input, button {
-      box-sizing: border-box;
-      width: 100%;
-      padding: 13px;
-      margin: 9px 0;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    input { border: 1px solid #ccc; }
-    button {
-      background: #176b50;
-      color: white;
-      border: 0;
-      cursor: pointer;
-    }
-    .note { color: #666; font-size: 14px; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>Al Furqan International Quran Academy</h1>
-    <h2>Attendance Portal</h2>
-    <p>حاضری پورٹل</p>
-    <form onsubmit="event.preventDefault(); alert('Login system will be connected in the next step.');">
-      <input type="text" placeholder="Student Roll Number" required>
-      <input type="password" placeholder="Password" required>
-      <button type="submit">Login / لاگ اِن</button>
-    </form>
-    <p class="note">Student Attendance Management System</p>
-  </div>
+<div id="loginBox">
+<input id="identity" placeholder="Roll Number or Admin Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login / لاگ اِن</button>
+<p class="note">Students enter their roll number. Admin enters registered email.</p>
+</div>
+
+<p id="message"></p>
+
+<div id="dashboard" class="hidden">
+<p id="welcome"></p>
+<button onclick="logout()">Logout / لاگ آؤٹ</button>
+
+<div id="studentPanel" class="hidden">
+<h2>My Attendance | میری حاضری</h2>
+<p id="today"></p>
+<button onclick="markAttendance()">Mark Present / حاضر لگائیں</button>
+<table>
+<thead><tr><th>Date</th><th>Status</th></tr></thead>
+<tbody id="myRecords"></tbody>
+</table>
+</div>
+
+<div id="adminPanel" class="hidden">
+<h2>Admin Dashboard</h2>
+<button onclick="loadAdmin()">Refresh Records</button>
+<button onclick="exportCSV()">Download CSV</button>
+<h3>Students</h3>
+<table>
+<thead><tr><th>Roll No.</th><th>Name</th></tr></thead>
+<tbody id="students"></tbody>
+</table>
+<h3>Attendance Records</h3>
+<table>
+<thead><tr><th>Date</th><th>Roll No.</th><th>Name</th><th>Status</th></tr></thead>
+<tbody id="allRecords"></tbody>
+</table>
+</div>
+</div>
+</div>
+
+<script>
+/* Supabase settings: add your own details below */
+const SUPABASE_URL = "https://gvqhywxhaupmrgsnwpgg.supabase.co/rest/v1/";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_VE8LXy4zsvja1P-uF7aDWA_uDHPZG55";
+
+let db;
+let currentUser;
+let currentProfile;
+let attendanceList = [];
+
+function setup(){
+ if(SUPABASE_URL.includes("PASTE_") ||
+    SUPABASE_PUBLISHABLE_KEY.includes("PASTE_")){
+   document.getElementById("message").textContent =
+   "Please add your Supabase Project URL and Publishable Key.";
+   return false;
+ }
+ if(!window.supabase){
+   document.getElementById("message").textContent =
+   "Could not load Supabase. Please refresh the page.";
+   return false;
+ }
+ if(!db) db=window.supabase.createClient(
+   SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY
+ );
+ return true;
+}
+
+function pakistanDate(){
+ const p={};
+ new Intl.DateTimeFormat("en-GB",{
+   timeZone:"Asia/Karachi",
+   year:"numeric",month:"2-digit",day:"2-digit"
+ }).formatToParts(new Date()).forEach(x=>p[x.type]=x.value);
+ return `${p.year}-${p.month}-${p.day}`;
+}
+
+async function login(){
+ if(!setup()) return;
+ const identity=document.getElementById("identity").value.trim();
+ const password=document.getElementById("password").value;
+ if(!identity||!password){
+   document.getElementById("message").textContent="Enter your login details.";
+   return;
+ }
+ document.getElementById("message").textContent="Logging in...";
+ try{
+   const email=identity.includes("@")?identity:
+     identity.toLowerCase()+"@students.alfurqanacademy.com";
+   const {data,error}=await db.auth.signInWithPassword({email,password});
+   if(error) throw error;
+   currentUser=data.user;
+   const {data:profile,error:pe}=await db.from("profiles")
+     .select("id,roll_no,full_name,role")
+     .eq("id",currentUser.id).single();
+   if(pe) throw pe;
+   currentProfile=profile;
+   document.getElementById("loginBox").classList.add("hidden");
+   document.getElementById("dashboard").classList.remove("hidden");
+   document.getElementById("welcome").textContent=
+     "Welcome, "+profile.full_name+" ("+profile.roll_no+")";
+   if(profile.role==="admin"){
+     document.getElementById("adminPanel").classList.remove("hidden");
+     await loadAdmin();
+   }else{
+     document.getElementById("studentPanel").classList.remove("hidden");
+     document.getElementById("today").textContent="Today's date: "+pakistanDate();
+     await loadMine();
+   }
+   document.getElementById("message").textContent="";
+ }catch(e){
+   document.getElementById("message").textContent="Login failed: "+e.message;
+ }
+}
+
+async function loadMine(){
+ const {data,error}=await db.from("attendance")
+   .select("attendance_date,status")
+   .eq("student_id",currentUser.id)
+   .order("attendance_date",{ascending:false});
+ if(error){
+   document.getElementById("message").textContent=error.message;return;
+ }
+ const body=document.getElementById("myRecords");
+ body.replaceChildren();
+ (data||[]).forEach(a=>{
+   const tr=document.createElement("tr");
+   [a.attendance_date,a.status].forEach(v=>{
+     const td=document.createElement("td");td.textContent=v;tr.appendChild(td);
+   });
+   body.appendChild(tr);
+ });
+}
+
+async function markAttendance(){
+ const {error}=await db.from("attendance").insert({
+   student_id:currentUser.id,
+   attendance_date:pakistanDate(),
+   status:"present"
+ });
+ if(error){
+   document.getElementById("message").textContent=
+     error.code==="23505"?"Today's attendance is already submitted.":error.message;
+   return;
+ }
+ document.getElementById("message").textContent="Attendance submitted!";
+ await loadMine();
+}
+
+async function loadAdmin(){
+ if(!currentProfile||currentProfile.role!=="admin")return;
+ const [pr,ar]=await Promise.all([
+   db.from("profiles").select("id,roll_no,full_name,role")
+     .eq("role","student").order("roll_no"),
+   db.from("attendance")
+     .select("student_id,attendance_date,status")
+     .order("attendance_date",{ascending:false})
+ ]);
+ if(pr.error||ar.error){
+   document.getElementById("message").textContent=(pr.error||ar.error).message;
+   return;
+ }
+ const map=new Map((pr.data||[]).map(p=>[p.id,p]));
+ attendanceList=(ar.data||[]).map(a=>({
+   date:a.attendance_date,
+   roll:map.get(a.student_id)?.roll_no||"Unknown",
+   name:map.get(a.student_id)?.full_name||"Unknown",
+   status:a.status
+ }));
+ const sb=document.getElementById("students");sb.replaceChildren();
+ (pr.data||[]).forEach(s=>{
+   const tr=document.createElement("tr");
+   [s.roll_no,s.full_name].forEach(v=>{
+     const td=document.createElement("td");td.textContent=v;tr.appendChild(td);
+   });
+   sb.appendChild(tr);
+ });
+ const ab=document.getElementById("allRecords");ab.replaceChildren();
+ attendanceList.forEach(a=>{
+   const tr=document.createElement("tr");
+   [a.date,a.roll,a.name,a.status].forEach(v=>{
+     const td=document.createElement("td");td.textContent=v;tr.appendChild(td);
+   });
+   ab.appendChild(tr);
+ });
+}
+
+function exportCSV(){
+ if(!currentProfile||currentProfile.role!=="admin")return;
+ const rows=[["Date","Roll Number","Student Name","Status"],
+   ...attendanceList.map(a=>[a.date,a.roll,a.name,a.status])];
+ const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n");
+ const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+ const url=URL.createObjectURL(blob);
+ const link=document.createElement("a");
+ link.href=url;link.download="Al-Furqan-Attendance.csv";link.click();
+ URL.revokeObjectURL(url);
+}
+
+async function logout(){
+ if(db)await db.auth.signOut();
+ currentUser=null;currentProfile=null;attendanceList=[];
+ document.getElementById("dashboard").classList.add("hidden");
+ document.getElementById("studentPanel").classList.add("hidden");
+ document.getElementById("adminPanel").classList.add("hidden");
+ document.getElementById("loginBox").classList.remove("hidden");
+ document.getElementById("identity").value="";
+ document.getElementById("password").value="";
+ document.getElementById("message").textContent="Logged out.";
+}
+</script>
 </body>
 </html>
